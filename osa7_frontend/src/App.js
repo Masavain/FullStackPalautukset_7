@@ -6,7 +6,7 @@ import BlogForm from './components/BlogForm'
 import blogService from './services/blogs'
 import loginService from './services/login'
 import userService from './services/users'
-import { BrowserRouter as Router, Route, Link, Redirect } from 'react-router-dom'
+import { BrowserRouter as Router, Route, Link } from 'react-router-dom'
 import { Table, Nav, Navbar, NavItem, FormGroup, FormControl, ControlLabel, Button, ListGroup, ListGroupItem } from 'react-bootstrap'
 
 const User = ({ user }) => {
@@ -16,7 +16,7 @@ const User = ({ user }) => {
       <h3>added blogs</h3>
       <ListGroup>
         {user.blogs.map(b =>
-          <ListGroupItem bsStyle="info">{b.title}</ListGroupItem>)}
+          <ListGroupItem key={b._id} bsStyle="info">{b.title}</ListGroupItem>)}
       </ListGroup>
     </div>
   )
@@ -47,7 +47,7 @@ class Users extends React.Component {
               <th>blogs added</th>
             </tr>
             {this.state.users.map(u =>
-              <tr>
+              <tr key={u.id}>
                 <td>
                   <Link to={`/users/${u.id}`}>{u.name}</Link>
                 </td>
@@ -125,7 +125,7 @@ class Home extends React.Component {
         {BlogsByLike.map(blog =>
           <div key={blog._id} style={blogStyle}>
             <Link to={`/blogs/${blog._id}`}>{blog.title} {blog.author}</Link>&nbsp;
-              <button onClick={this.deleteBlog(blog._id)}>delete</button>
+            <button onClick={this.deleteBlog(blog._id)}>delete</button>
           </div>
         )}
       </div>
@@ -147,7 +147,7 @@ class App extends React.Component {
       url: '',
       error: null,
       notif: null,
-      redirect: false
+      comment: ''
     }
   }
 
@@ -216,6 +216,23 @@ class App extends React.Component {
     }, 5000)
   }
 
+  addComment = (id, comment) => {
+    const blog = this.state.blogs.find(b => b._id === id)
+    const changedBlog = { ...blog, comments: blog.comments.concat(comment) }
+
+    blogService
+      .comment(id, changedBlog)
+      .then(updated => {
+        this.setState({
+          blogs: this.state.blogs.map(b => b._id !== id ? b : updated),
+          notif: `comment '${comment}' added to blog '${blog.title}'`
+        })
+      })
+    setTimeout(() => {
+      this.setState({ notif: null })
+    }, 5000)
+  }
+
   likeBlog = (id) => {
     return () => {
       const blog = this.state.blogs.find(b => b._id === id)
@@ -232,6 +249,9 @@ class App extends React.Component {
   }
 
 
+  handleCommentFieldChange = (event) => {
+    this.setState({ [event.target.name]: event.target.value })
+  }
 
   handleLoginFieldChange = (event) => {
     this.setState({ [event.target.name]: event.target.value })
@@ -304,7 +324,7 @@ class App extends React.Component {
                 <Nav>
                   <NavItem href="#">
                     <Link to="/">home</Link>&nbsp;
-              </NavItem>
+                  </NavItem>
                   <NavItem href="#">
                     <Link to="/users">users</Link>
                   </NavItem>
@@ -326,6 +346,7 @@ class App extends React.Component {
                 blog={this.blogById(match.params.id)}
                 onLike={this.likeBlog(match.params.id)}
                 user={this.state.user}
+                addComment={this.addComment}
               />} />
           </div>
         </Router>
@@ -335,4 +356,4 @@ class App extends React.Component {
 }
 
 
-export default App;
+export default App

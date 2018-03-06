@@ -4,24 +4,21 @@ class Blog extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
-      visible: false,
+      comment: '',
     }
   }
-
-  toggle = () => {
-    this.setState({ visible: !this.state.visible })
+  handleChange = (e) => {
+    this.setState({ [e.target.name]: e.target.value })
+  }
+  handleSubmit = (e) => {
+    e.preventDefault()
+    this.props.addComment(this.props.blog._id, this.state.comment)
+    this.setState({ comment: '' })
   }
 
   render() {
-    const blogStyle = {
-      paddingTop: 10,
-      paddingLeft: 2,
-      border: 'solid',
-      borderWidth: 1,
-      marginBottom: 5
-    }
-  
-  
+
+
     const user = this.props.blog.user === undefined ? '' : `added by ${this.props.blog.user.name}`
 
     return (
@@ -34,6 +31,18 @@ class Blog extends React.Component {
         <div>
           {user}
         </div>
+        <h3>comments</h3>
+        <ul>
+          {this.props.blog.comments.map(c =>
+            <li>{c}</li>)}
+        </ul>
+        <form onSubmit={this.handleSubmit}>
+          <div>
+              comment:
+            <input type="text" name="comment" value={this.state.comment} onChange={this.handleChange}/>
+          </div>
+          <button type="submit">add comment</button>
+        </form>
       </div>
     )
   }

@@ -8,8 +8,8 @@ const BlogForm = ({ onSubmit, handleChange, title, author, url }) => {
       <h2>create new</h2>
 
       <form onSubmit={onSubmit}>
-      <FormGroup bsSize="small">
-      <ControlLabel>title:</ControlLabel>
+        <FormGroup bsSize="small">
+          <ControlLabel>title:</ControlLabel>
           <FormControl
             type="text"
             name="title"
@@ -17,7 +17,7 @@ const BlogForm = ({ onSubmit, handleChange, title, author, url }) => {
             placeholder="title"
             onChange={handleChange}
           />
-        <ControlLabel>author:</ControlLabel>
+          <ControlLabel>author:</ControlLabel>
           <FormControl
             type="text"
             name="author"
@@ -33,7 +33,7 @@ const BlogForm = ({ onSubmit, handleChange, title, author, url }) => {
             placeholder="url"
             onChange={handleChange}
           />
-        <Button bsStyle="success" type="submit">save</Button>
+          <Button bsStyle="success" type="submit">save</Button>
         </FormGroup>
       </form>
     </div>

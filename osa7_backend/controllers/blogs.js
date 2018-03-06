@@ -64,7 +64,7 @@ blogsRouter.post('/', async (request, response) => {
         const blog = new Blog({ title, author, url, likes: (likes || 0), user: user._id })
         const result = await blog.save()
         result.user = user
-        
+
         user.blogs = user.blogs.concat(blog._id)
         await user.save()
         response.status(201).json(result)
@@ -77,6 +77,27 @@ blogsRouter.post('/', async (request, response) => {
             response.status(500).json({ error: 'something went wrong...' })
         }
     }
+})
+
+blogsRouter.post('/:id/comments', async (req, res) => {
+    try {
+        const body = req.body
+
+        const blog = {
+            title: body.title,
+            author: body.author,
+            url: body.url,
+            likes: body.likes,
+            comments: body.comments
+        }
+
+        const updatedBlog = await Blog.findByIdAndUpdate(req.params.id, blog, { new: true }).populate('user')
+        res.status(200).json(updatedBlog)
+    } catch (exception) {
+        console.log(exception)
+        res.status(400).json({ error: 'malformatted id' })
+    }
+
 })
 
 blogsRouter.put('/:id', async (request, response) => {
