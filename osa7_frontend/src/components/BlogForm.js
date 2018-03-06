@@ -1,6 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-
+import { FormGroup, FormControl, ControlLabel, Button } from 'react-bootstrap'
 
 const BlogForm = ({ onSubmit, handleChange, title, author, url }) => {
   return (
@@ -8,34 +8,33 @@ const BlogForm = ({ onSubmit, handleChange, title, author, url }) => {
       <h2>create new</h2>
 
       <form onSubmit={onSubmit}>
-        <div>
-          title
-        <input
+      <FormGroup bsSize="small">
+      <ControlLabel>title:</ControlLabel>
+          <FormControl
             type="text"
             name="title"
             value={title}
+            placeholder="title"
             onChange={handleChange}
           />
-        </div>
-        <div>
-          author
-        <input
+        <ControlLabel>author:</ControlLabel>
+          <FormControl
             type="text"
             name="author"
             value={author}
+            placeholder="author"
             onChange={handleChange}
           />
-        </div>
-        <div>
-          url
-        <input
+          <ControlLabel>url:</ControlLabel>
+          <FormControl
             type="text"
             name="url"
             value={url}
+            placeholder="url"
             onChange={handleChange}
           />
-        </div>
-        <button type="submit">save</button>
+        <Button bsStyle="success" type="submit">save</Button>
+        </FormGroup>
       </form>
     </div>
   )

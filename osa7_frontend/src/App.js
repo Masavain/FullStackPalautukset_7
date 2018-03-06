@@ -7,16 +7,17 @@ import blogService from './services/blogs'
 import loginService from './services/login'
 import userService from './services/users'
 import { BrowserRouter as Router, Route, Link, Redirect } from 'react-router-dom'
+import { Table, Nav, Navbar, NavItem, FormGroup, FormControl, ControlLabel, Button, ListGroup, ListGroupItem } from 'react-bootstrap'
 
 const User = ({ user }) => {
   return (
     <div>
       <h2>{user.name}</h2>
       <h3>added blogs</h3>
-      <ul>
+      <ListGroup>
         {user.blogs.map(b =>
-          <li>{b.title}</li>)}
-      </ul>
+          <ListGroupItem bsStyle="info">{b.title}</ListGroupItem>)}
+      </ListGroup>
     </div>
   )
 }
@@ -35,24 +36,27 @@ class Users extends React.Component {
   }
 
   render() {
+
     return (
       <div>
         <h2>users</h2>
-        <table>
-          <tr>
-            <th>user</th>
-            <th>blogs added</th>
-          </tr>
-          {this.state.users.map(u =>
-            <tr key={u.id}>
-              <td >
-                <Link to={`/users/${u.id}`}>{u.name}</Link>
-              </td>
-              <td>
-                {u.blogs.length}
-              </td>
-            </tr>)}
-        </table>
+        <Table striped>
+          <tbody>
+            <tr>
+              <th>user</th>
+              <th>blogs added</th>
+            </tr>
+            {this.state.users.map(u =>
+              <tr>
+                <td>
+                  <Link to={`/users/${u.id}`}>{u.name}</Link>
+                </td>
+                <td>
+                  {u.blogs.length}
+                </td>
+              </tr>)}
+          </tbody>
+        </Table>
       </div>
     )
   }
@@ -108,6 +112,7 @@ class Home extends React.Component {
 
     const blogStyle = {
       paddingTop: 10,
+      paddingBottom: 5,
       paddingLeft: 2,
       border: 'solid',
       borderWidth: 1,
@@ -255,52 +260,65 @@ class App extends React.Component {
 
     if (this.state.user === null) {
       return (
-        <div>
+        <div className="container">
           <Notification type="error" message={this.state.error} />
 
           <h2>Kirjaudu sovellukseen</h2>
           <form onSubmit={this.login}>
-            <div>
-              käyttäjätunnus
-            <input
+            <FormGroup bsSize="small">
+              <ControlLabel>username:</ControlLabel>
+              <FormControl
                 type="text"
                 name="username"
                 value={this.state.username}
                 onChange={this.handleLoginFieldChange}
               />
-            </div>
-            <div>
-              salasana
-            <input
+              <ControlLabel>password:</ControlLabel>
+              <FormControl
                 type="password"
                 name="password"
                 value={this.state.password}
                 onChange={this.handleLoginFieldChange}
               />
-            </div>
-            <button type="submit">kirjaudu</button>
+              <Button type="submit">login</Button>
+            </FormGroup>
           </form>
         </div>
       )
     }
 
     return (
-      <div>
+      <div className="container">
         <Router>
           <div>
-            <h1>Blog App</h1>
+
+            <Navbar inverse collapseOnSelect>
+              <Navbar.Header>
+                <Navbar.Brand>
+                  Blog App
+                </Navbar.Brand>
+                <Navbar.Toggle />
+              </Navbar.Header>
+
+              <Navbar.Collapse>
+                <Nav>
+                  <NavItem href="#">
+                    <Link to="/">home</Link>&nbsp;
+              </NavItem>
+                  <NavItem href="#">
+                    <Link to="/users">users</Link>
+                  </NavItem>
+                </Nav>
+              </Navbar.Collapse>
+            </Navbar>
             <Notification type="notif" message={this.state.notif} />
             <div>
               {this.state.user.name} logged in
               <button onClick={this.logout}> log out</button>
             </div>
             {blogForm()}
-            <div>
-              <Link to="/users">users</Link>&nbsp;
-              <Link to="/">home</Link>
-            </div>
-            <Route path="/users" render={() => <Users users={this.state.users} />} />
             <Route exact path="/" render={() => <Home user={this.state.user} />} />
+            <Route path="/users" render={() => <Users users={this.state.users} />} />
             <Route path="/users/:id" render={({ match }) =>
               <User user={this.userById(match.params.id)} />} />
             <Route path="/blogs/:id" render={({ match, history }) =>
