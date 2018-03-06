@@ -6,30 +6,57 @@ import BlogForm from './components/BlogForm'
 import blogService from './services/blogs'
 import loginService from './services/login'
 import userService from './services/users'
-import { BrowserRouter as Router, Route, Link } from 'react-router-dom'
+import { BrowserRouter as Router, Route, Link, Redirect } from 'react-router-dom'
 
-const Users = ({ users }) => {
-  console.log(users)
+const User = ({ user }) => {
   return (
     <div>
-      <h2>users</h2>
-      <table>
-        <tr>
-          <th>user</th>
-          <th>blogs added</th>
-        </tr>
-        {users.map(u =>
-          <tr key={u._id}>
-            <td >
-              {u.username}
-            </td>
-            <td>
-              {u.blogs.length}
-            </td>
-          </tr>)}
-      </table>
+      <h2>{user.name}</h2>
+      <h3>added blogs</h3>
+      <ul>
+        {user.blogs.map(b =>
+          <li>{b.title}</li>)}
+      </ul>
     </div>
   )
+}
+
+class Users extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+      users: []
+    }
+  }
+  componentDidMount() {
+    userService.getAll().then(users =>
+      this.setState({ users })
+    )
+  }
+
+  render() {
+    return (
+      <div>
+        <h2>users</h2>
+        <table>
+          <tr>
+            <th>user</th>
+            <th>blogs added</th>
+          </tr>
+          {this.state.users.map(u =>
+            <tr key={u.id}>
+              <td >
+                <Link to={`/users/${u.id}`}>{u.name}</Link>
+              </td>
+              <td>
+                {u.blogs.length}
+              </td>
+            </tr>)}
+        </table>
+      </div>
+    )
+  }
+
 }
 
 class Home extends React.Component {
@@ -45,23 +72,6 @@ class Home extends React.Component {
     blogService.getAll().then(blogs =>
       this.setState({ blogs })
     )
-    console.log(this.state.blogs)
-    console.log(this.props.blogs)
-  }
-
-  likeBlog = (id) => {
-    return () => {
-      const blog = this.state.blogs.find(b => b._id === id)
-      const changedBlog = { ...blog, likes: blog.likes + 1 }
-
-      blogService
-        .update(id, changedBlog)
-        .then(updated => {
-          this.setState({
-            blogs: this.state.blogs.map(b => b._id !== id ? b : updated)
-          })
-        })
-    }
   }
 
   deleteBlog = (id) => {
@@ -96,17 +106,22 @@ class Home extends React.Component {
       return b.likes - a.likes
     })
 
+    const blogStyle = {
+      paddingTop: 10,
+      paddingLeft: 2,
+      border: 'solid',
+      borderWidth: 1,
+      marginBottom: 5
+    }
+
     return (
       <div>
         <h2>blogs</h2>
         {BlogsByLike.map(blog =>
-          <Blog
-            key={blog._id}
-            blog={blog}
-            onLike={this.likeBlog(blog._id)}
-            delete={this.deleteBlog(blog._id)}
-            user={this.props.user}
-          />
+          <div key={blog._id} style={blogStyle}>
+            <Link to={`/blogs/${blog._id}`}>{blog.title} {blog.author}</Link>&nbsp;
+              <button onClick={this.deleteBlog(blog._id)}>delete</button>
+          </div>
         )}
       </div>
     )
@@ -127,6 +142,7 @@ class App extends React.Component {
       url: '',
       error: null,
       notif: null,
+      redirect: false
     }
   }
 
@@ -187,13 +203,30 @@ class App extends React.Component {
       title: '',
       author: '',
       url: '',
-      notif: `a new blog '${newBlog.title}' by ${newBlog.author} added`
+      notif: `a new blog '${newBlog.title}' by ${newBlog.author} added`,
+      redirect: true
     })
     setTimeout(() => {
       this.setState({ notif: null })
     }, 5000)
-
   }
+
+  likeBlog = (id) => {
+    return () => {
+      const blog = this.state.blogs.find(b => b._id === id)
+      const changedBlog = { ...blog, likes: blog.likes + 1 }
+
+      blogService
+        .update(id, changedBlog)
+        .then(updated => {
+          this.setState({
+            blogs: this.state.blogs.map(b => b._id !== id ? b : updated)
+          })
+        })
+    }
+  }
+
+
 
   handleLoginFieldChange = (event) => {
     this.setState({ [event.target.name]: event.target.value })
@@ -202,6 +235,9 @@ class App extends React.Component {
   handleBlogFieldChange = (event) => {
     this.setState({ [event.target.name]: event.target.value })
   }
+
+  userById = (id) => this.state.users.find(u => u.id === id)
+  blogById = (id) => this.state.blogs.find(b => b._id === id)
 
   render() {
 
@@ -263,8 +299,16 @@ class App extends React.Component {
               <Link to="/users">users</Link>&nbsp;
               <Link to="/">home</Link>
             </div>
-            <Route exact path="/users" render={() => <Users users={this.state.users} />} />
+            <Route path="/users" render={() => <Users users={this.state.users} />} />
             <Route exact path="/" render={() => <Home user={this.state.user} />} />
+            <Route path="/users/:id" render={({ match }) =>
+              <User user={this.userById(match.params.id)} />} />
+            <Route path="/blogs/:id" render={({ match, history }) =>
+              <Blog history={history}
+                blog={this.blogById(match.params.id)}
+                onLike={this.likeBlog(match.params.id)}
+                user={this.state.user}
+              />} />
           </div>
         </Router>
       </div>

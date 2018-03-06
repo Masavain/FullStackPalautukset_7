@@ -45,42 +45,36 @@ blogsRouter.delete('/:id', async (request, response) => {
 })
 
 blogsRouter.post('/', async (request, response) => {
-    const body = request.body
+    const { title, author, url, likes } = request.body
 
     try {
-        const decodedToken = jwt.verify(request.token, process.env.SECRET)
+        const token = request.token
+        const decodedToken = jwt.verify(token, process.env.SECRET)
 
-        if (!decodedToken.id) {
+        if (!token || !decodedToken.id) {
             return response.status(401).json({ error: 'token missing or invalid' })
         }
 
-
-
-        if (body.title === undefined || body.author === undefined || body.url === undefined) {
-            return response.status(400).json({ error: 'content missing' })
+        if (title === undefined || url === undefined) {
+            return response.status(400).json({ error: 'url or title missing' })
         }
+
         const user = await User.findById(decodedToken.id)
 
-        const blog = new Blog({
-            title: body.title,
-            author: body.author,
-            url: body.url,
-            likes: body.likes === undefined ? 0 : body.likes,
-            user: user._id
-        })
-        const savedBlog = await blog.save()
-
-        user.blogs = user.blogs.concat(savedBlog._id)
+        const blog = new Blog({ title, author, url, likes: (likes || 0), user: user._id })
+        const result = await blog.save()
+        result.user = user
+        
+        user.blogs = user.blogs.concat(blog._id)
         await user.save()
+        response.status(201).json(result)
 
-        response.status(201).json(Blog.format(savedBlog))
     } catch (exception) {
         if (exception.name === 'JsonWebTokenError') {
             response.status(401).json({ error: exception.message })
         } else {
             console.log(exception)
             response.status(500).json({ error: 'something went wrong...' })
-
         }
     }
 })
@@ -96,7 +90,7 @@ blogsRouter.put('/:id', async (request, response) => {
             likes: body.likes === undefined ? 0 : body.likes
         }
 
-        const updatedBlog = await Blog.findByIdAndUpdate(request.params.id, blog, { new: true })
+        const updatedBlog = await Blog.findByIdAndUpdate(request.params.id, blog, { new: true }).populate('user')
         response.json(updatedBlog)
 
     } catch (exception) {
